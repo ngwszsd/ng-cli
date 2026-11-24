@@ -53,8 +53,14 @@ curl -fsSL https://github.com/ngwszsd/ng-cli/releases/latest/download/install.sh
 ```
 
 默认安装到 `~/.local/bin/ng-cli`。运行 `ng-cli` 打开交互界面，或运行 `ng-cli --list` 输出命令列表。
+
+卸载已安装的 CLI 可以运行以下命令。如果安装时设置了 `NG_CLI_INSTALL_DIR`，卸载时请为 Bash 设置相同的目录。
+
+```bash
+curl -fsSL https://github.com/ngwszsd/ng-cli/releases/latest/download/uninstall.sh | bash
+```
 NOTES
   gh release create "$tag" --repo "$repo" --verify-tag --draft --title "ng-cli $tag" --notes-file "$stage/notes.md"
 fi
-gh release upload "$tag" --repo "$repo" --clobber "$stage/$archive" "$stage/SHA256SUMS" "$stage/install.sh"
+gh release upload "$tag" --repo "$repo" --clobber "$stage/$archive" "$stage/SHA256SUMS" "$stage/install.sh" "$stage/source/scripts/uninstall.sh"
 gh release edit "$tag" --repo "$repo" --draft=false

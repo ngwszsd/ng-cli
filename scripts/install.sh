@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+install_cli() (
+  if [[ "$(uname -sm)" != "Darwin arm64" ]]; then
+    echo '当前发行版适用于 Apple 芯片 Mac（macOS ARM64）。' >&2
+    return 1
+  fi
+
+  releases=https://github.com/ngwszsd/ng-cli/releases
+  latest=$(curl -fsSIL --retry 2 -o /dev/null -w '%{url_effective}' "$releases/latest")
+  tag=${latest##*/}
+  if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "无法识别 GitHub Releases 版本：$tag" >&2
+    return 1
+  fi
+  archive="ng-cli-$tag-darwin-arm64.tar.gz"
+
+  install_dir=${NG_CLI_INSTALL_DIR:-"$HOME/.local/bin"}
+  mkdir -p "$install_dir"
+  install_dir=$(cd "$install_dir" && pwd)
+  temp_dir=$(mktemp -d "$install_dir/.ng-cli.XXXXXXXX")
+  # 在同一文件系统校验和解压，最后一次移动完成安装或升级。
+  trap 'rm -rf "$temp_dir"' EXIT
+  cd "$temp_dir"
+  curl -fsSL --retry 2 -o "$archive" "$releases/download/$tag/$archive"
+  curl -fsSL --retry 2 -o SHA256SUMS "$releases/download/$tag/SHA256SUMS"
+  shasum -a 256 "$archive" | diff - SHA256SUMS
+  tar -xzf "$archive" ng-cli
+  chmod 755 ng-cli
+  mv -f ng-cli "$install_dir/ng-cli"
+  echo "已安装 ng-cli $tag 到 $install_dir/ng-cli"
+  if [[ ":${PATH:-}:" != *":$install_dir:"* ]]; then
+    printf '直接运行 %q，或将以下一行加入 shell 配置：\nexport PATH=%q:"$PATH"\n' "$install_dir/ng-cli" "$install_dir"
+  fi
+)
+
+# 管道输入完整后才开始安装。
+install_cli

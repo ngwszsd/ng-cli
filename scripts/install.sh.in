@@ -8,12 +8,8 @@ install_cli() (
   fi
 
   releases=https://github.com/ngwszsd/ng-cli/releases
-  latest=$(curl -fsSIL --retry 2 -o /dev/null -w '%{url_effective}' "$releases/latest")
-  tag=${latest##*/}
-  if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "无法识别 GitHub Releases 版本：$tag" >&2
-    return 1
-  fi
+  # 发布时用当前 Git 标签替换占位符，下载地址固定到同一版本。
+  tag='@RELEASE_TAG@'
   archive="ng-cli-$tag-darwin-arm64.tar.gz"
 
   install_dir=${NG_CLI_INSTALL_DIR:-"$HOME/.local/bin"}

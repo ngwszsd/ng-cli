@@ -41,6 +41,7 @@ git archive "$tag" | tar -xf - -C "$stage/source"
 archive="ng-cli-$tag-darwin-arm64.tar.gz"
 COPYFILE_DISABLE=1 tar -czf "$stage/$archive" -C "$stage/source/release" ng-cli
 (cd "$stage" && shasum -a 256 "$archive" > SHA256SUMS)
+sed "s/@RELEASE_TAG@/$tag/g" "$stage/source/scripts/install.sh.in" > "$stage/install.sh"
 
 git push --atomic origin HEAD "refs/tags/$tag"
 if [[ "$state" != true ]]; then
@@ -55,5 +56,5 @@ curl -fsSL https://github.com/ngwszsd/ng-cli/releases/latest/download/install.sh
 NOTES
   gh release create "$tag" --repo "$repo" --verify-tag --draft --title "ng-cli $tag" --notes-file "$stage/notes.md"
 fi
-gh release upload "$tag" --repo "$repo" --clobber "$stage/$archive" "$stage/SHA256SUMS" "$stage/source/scripts/install.sh"
+gh release upload "$tag" --repo "$repo" --clobber "$stage/$archive" "$stage/SHA256SUMS" "$stage/install.sh"
 gh release edit "$tag" --repo "$repo" --draft=false

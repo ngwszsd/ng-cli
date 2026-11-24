@@ -16,12 +16,10 @@
   "scripts": {
     "dev": "tsx src/cli.tsx",
     "typecheck": "tsc --noEmit",
-    "build:js": "pnpm run typecheck && node esbuild.config.mjs",
-    "build": "pnpm run build:js && bun build --compile dist/cli.js --outfile release/ng-cli",
-    "start": "node dist/cli.js",
+    "prepack": "pnpm run typecheck && node esbuild.config.mjs",
+    "build": "pnpm run prepack && bun build --compile dist/cli.js --outfile release/ng-cli",
     "test": "pnpm run build && node --import tsx --test test/*.test.ts",
-    "release": "bash scripts/release.sh",
-    "prepack": "pnpm run build:js"
+    "release": "bash scripts/release.sh"
   },
   "dependencies": {
     "ink": "^8.0.0",

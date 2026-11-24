@@ -16,10 +16,11 @@
   "scripts": {
     "dev": "tsx src/cli.tsx",
     "typecheck": "tsc --noEmit",
-    "build": "tsc -p tsconfig.build.json",
+    "build:js": "pnpm run typecheck && node esbuild.config.mjs",
+    "build": "pnpm run build:js && bun build --compile dist/cli.js --outfile release/ng-cli",
     "start": "node dist/cli.js",
     "test": "pnpm run build && node --import tsx --test test/*.test.ts",
-    "prepack": "pnpm run build"
+    "prepack": "pnpm run build:js"
   },
   "dependencies": {
     "ink": "^8.0.0",
@@ -28,6 +29,8 @@
   "devDependencies": {
     "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",
+    "esbuild": "^0.28.2",
+    "react-devtools-core": "^6.1.5",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3"
   }

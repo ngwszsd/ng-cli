@@ -12,6 +12,7 @@ const help = [
 
 async function main() {
   const {values} = parseArgs({
+    args: process.argv.slice(2),
     options: {
       list: {type: 'boolean'},
       help: {type: 'boolean', short: 'h'},

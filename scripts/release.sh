@@ -7,7 +7,7 @@ if [[ "$(uname -sm)" != "Darwin arm64" ]]; then
   echo '请在 Apple 芯片 Mac 上构建并测试本次发布的二进制。' >&2
   exit 1
 fi
-if [[ -n "$(git status --porcelain)" ]]; then
+if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
   echo '请先提交待发布的改动，再运行 pnpm release。' >&2
   exit 1
 fi
@@ -29,12 +29,17 @@ if [[ "$state" == false ]]; then
   exit 0
 fi
 
-pnpm install --frozen-lockfile
-pnpm test
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
+mkdir "$stage/source"
+git archive "$tag" | tar -xf - -C "$stage/source"
+(
+  cd "$stage/source"
+  pnpm install --frozen-lockfile
+  pnpm test
+)
 archive="ng-cli-$tag-darwin-arm64.tar.gz"
-COPYFILE_DISABLE=1 tar -czf "$stage/$archive" -C release ng-cli
+COPYFILE_DISABLE=1 tar -czf "$stage/$archive" -C "$stage/source/release" ng-cli
 (cd "$stage" && shasum -a 256 "$archive" > SHA256SUMS)
 
 git push --atomic origin HEAD "refs/tags/$tag"
@@ -50,5 +55,5 @@ curl -fsSL https://github.com/ngwszsd/ng-cli/releases/latest/download/install.sh
 NOTES
   gh release create "$tag" --repo "$repo" --verify-tag --draft --title "ng-cli $tag" --notes-file "$stage/notes.md"
 fi
-gh release upload "$tag" --repo "$repo" --clobber "$stage/$archive" "$stage/SHA256SUMS" scripts/install.sh
+gh release upload "$tag" --repo "$repo" --clobber "$stage/$archive" "$stage/SHA256SUMS" "$stage/source/scripts/install.sh"
 gh release edit "$tag" --repo "$repo" --draft=false
